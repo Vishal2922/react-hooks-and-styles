@@ -360,27 +360,6 @@ export default function LoginPage() {
             </InputGroup>
           </Form.Group>
 
-          {/* Remember me + Forgot
-          <Row className="mb-3 align-items-center">
-            <Col>
-              <Form.Check
-                type="checkbox"
-                label="Remember me"
-                checked={rem}
-                onChange={() => setRem(v => !v)}
-                style={{ fontSize: 13, color: '#6b7280', accentColor: '#0ea5e9' }}
-              />
-            </Col>
-            <Col xs="auto">
-              <span style={{
-                fontSize: 13, fontWeight: 600, color: '#0ea5e9',
-                cursor: 'pointer', transition: 'color 0.18s',
-              }}>
-                Forgot password?
-              </span>
-            </Col>
-          </Row> */}
-
           {/* Submit */}
           <Button
             type="submit"
