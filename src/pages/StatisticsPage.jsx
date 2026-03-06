@@ -7,36 +7,157 @@ import {
 } from 'recharts'
 import { useAllPatients } from '../hooks/usePatients'
 
-const fadeUp = keyframes`from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}`
-const spin = keyframes`to{transform:rotate(360deg)}`
+/* ── Animations ── */
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+`
 
-const Page = styled.div`animation:${fadeUp} 0.4s ease;`
-const PTitle = styled.h1`font-size:22px;font-weight:800;color:${({ theme }) => theme.colors.dark};margin-bottom:4px;`
-const PSub = styled.p`font-size:14px;color:${({ theme }) => theme.colors.muted};margin-bottom:22px;`
-const SumRow = styled.div`display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;`
-const SCard = styled.div`
-  background:${({ theme }) => theme.colors.bgCard};border-radius:${({ theme }) => theme.radius.md};
-  padding:14px;text-align:center;box-shadow:${({ theme }) => theme.shadow.sm};
-  border-top:3px solid ${({ $c }) => $c};transition:${({ theme }) => theme.transition};
-  &:hover{transform:translateY(-2px);box-shadow:${({ theme }) => theme.shadow.md};}
+const spin = keyframes`
+  to { transform: rotate(360deg); }
 `
-const SVal = styled.div`font-size:24px;font-weight:800;color:${({ $c }) => $c};font-family:${({ theme }) => theme.fonts.mono};line-height:1;margin-bottom:5px;`
-const SLbl = styled.div`font-size:11px;color:${({ theme }) => theme.colors.muted};font-weight:600;text-transform:uppercase;letter-spacing:0.5px;`
-const Grid2 = styled.div`display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;@media(max-width:800px){grid-template-columns:1fr;}`
-const Grid3 = styled.div`display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;@media(max-width:960px){grid-template-columns:1fr 1fr;}@media(max-width:600px){grid-template-columns:1fr;}`
-const Full = styled.div`margin-bottom:16px;`
-const CCard = styled.div`
-  background:${({ theme }) => theme.colors.bgCard};border-radius:${({ theme }) => theme.radius.lg};
-  padding:20px;box-shadow:${({ theme }) => theme.shadow.sm};transition:${({ theme }) => theme.transition};
-  &:hover{box-shadow:${({ theme }) => theme.shadow.md};transform:translateY(-2px);}
+
+/* ── Page Shell ── */
+const Page = styled.div`
+  animation: ${fadeUp} 0.4s ease;
 `
-const CT = styled.h3`font-size:14px;font-weight:700;color:${({ theme }) => theme.colors.dark};margin-bottom:2px;`
-const CS = styled.p`font-size:12px;color:${({ theme }) => theme.colors.muted};margin-bottom:14px;`
+
+const PageTitle = styled.h1`
+  font-size: 22px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.dark};
+  margin-bottom: 4px;
+`
+
+const PageSubtitle = styled.p`
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.muted};
+  margin-bottom: 22px;
+`
+
+/* ── Summary Cards ── */
+const SumRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+`
+
+const SummaryCard = styled.div`
+  background: ${({ theme }) => theme.colors.bgCard};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: 14px;
+  text-align: center;
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+  border-top: 3px solid ${({ $c }) => $c};
+  transition: ${({ theme }) => theme.transition};
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.shadow.md};
+  }
+`
+
+const SummaryValue = styled.div`
+  font-size: 24px;
+  font-weight: 800;
+  color: ${({ $c }) => $c};
+  font-family: ${({ theme }) => theme.fonts.mono};
+  line-height: 1;
+  margin-bottom: 5px;
+`
+
+const SummaryLabel = styled.div`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.muted};
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`
+
+/* ── Layout Grids ── */
+const Grid2 = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  @media (max-width: 800px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const Grid3 = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+
+  @media (max-width: 960px) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`
+
+const Full = styled.div`
+  margin-bottom: 16px;
+`
+
+/* ── Chart Cards ── */
+const ChartCard = styled.div`
+  background: ${({ theme }) => theme.colors.bgCard};
+  border-radius: ${({ theme }) => theme.radius.lg};
+  padding: 20px;
+  box-shadow: ${({ theme }) => theme.shadow.sm};
+  transition: ${({ theme }) => theme.transition};
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.shadow.md};
+    transform: translateY(-2px);
+  }
+`
+
+const ChartTitle = styled.h3`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.dark};
+  margin-bottom: 2px;
+`
+
+const ChartSubtitle = styled.p`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.muted};
+  margin-bottom: 14px;
+`
+
+/* ── Loader ── */
 const Loader = styled.div`
-  display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:14px;
-  div{width:40px;height:40px;border:3px solid ${({ theme }) => theme.colors.border};border-top-color:${({ theme }) => theme.colors.primary};border-radius:50%;animation:${spin} 0.75s linear infinite;}
-  p{font-size:14px;color:${({ theme }) => theme.colors.muted};}
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 14px;
+
+  div {
+    width: 40px;
+    height: 40px;
+    border: 3px solid ${({ theme }) => theme.colors.border};
+    border-top-color: ${({ theme }) => theme.colors.primary};
+    border-radius: 50%;
+    animation: ${spin} 0.75s linear infinite;
+  }
+
+  p {
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.muted};
+  }
 `
+
+/* ── Chart Helpers ── */
 const COLORS = ['#0ea5e9', '#7c3aed', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#8b5cf6']
 const TICK = { fontSize: 12, fill: '#94a3b8', fontFamily: 'Outfit' }
 
@@ -68,18 +189,18 @@ export default function StatisticsPage() {
 
   return (
     <Page>
-      <PTitle>Statistics & Analytics 📊</PTitle>
-      <PSub>Insights from {stats.total} patient records</PSub>
+      <PageTitle>Statistics & Analytics 📊</PageTitle>
+      <PageSubtitle>Insights from {stats.total} patient records</PageSubtitle>
 
       <SumRow>
         {[['Total', stats.total, '#0ea5e9'], ['Male', males, '#0ea5e9'], ['Female', females, '#ec4899'],
         ['Blood Types', stats.bloodData.length, '#7c3aed'], ['Avg Monthly', avgAdm, '#22c55e'], ['Critical', 6, '#ef4444']
-        ].map(([l, v, c]) => (<SCard key={l} $c={c}><SVal $c={c}>{v}</SVal><SLbl>{l}</SLbl></SCard>))}
+        ].map(([l, v, c]) => (<SummaryCard key={l} $c={c}><SummaryValue $c={c}>{v}</SummaryValue><SummaryLabel>{l}</SummaryLabel></SummaryCard>))}
       </SumRow>
 
       <Full>
-        <CCard>
-          <CT>📅 Monthly Admissions & Discharges</CT><CS>12-month patient flow overview</CS>
+        <ChartCard>
+          <ChartTitle>📅 Monthly Admissions & Discharges</ChartTitle><ChartSubtitle>12-month patient flow overview</ChartSubtitle>
           <ResponsiveContainer width="100%" height={280}>
             <AreaChart data={stats.monthlyData}>
               <defs>
@@ -97,12 +218,12 @@ export default function StatisticsPage() {
               <Area type="monotone" dataKey="discharges" name="Discharges" stroke="#22c55e" strokeWidth={2.5} fill="url(#gD)" />
             </AreaChart>
           </ResponsiveContainer>
-        </CCard>
+        </ChartCard>
       </Full>
 
       <Grid2>
-        <CCard>
-          <CT>👥 Age Distribution</CT><CS>Patients by age bracket</CS>
+        <ChartCard>
+          <ChartTitle>👥 Age Distribution</ChartTitle><ChartSubtitle>Patients by age bracket</ChartSubtitle>
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={stats.ageData} barSize={36}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -112,9 +233,9 @@ export default function StatisticsPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </CCard>
-        <CCard>
-          <CT>⚥ Gender Split</CT><CS>Male vs Female ratio</CS>
+        </ChartCard>
+        <ChartCard>
+          <ChartTitle>⚥ Gender Split</ChartTitle><ChartSubtitle>Male vs Female ratio</ChartSubtitle>
           <ResponsiveContainer width="100%" height={230}>
             <PieChart>
               <Pie data={stats.genderData} dataKey="value" nameKey="name" cx="50%" cy="50%"
@@ -125,12 +246,12 @@ export default function StatisticsPage() {
               <Tooltip content={<Tip />} /><Legend wrapperStyle={{ fontFamily: 'Outfit', fontSize: 13 }} />
             </PieChart>
           </ResponsiveContainer>
-        </CCard>
+        </ChartCard>
       </Grid2>
 
       <Grid3>
-        <CCard>
-          <CT>🩸 Blood Groups</CT><CS>ABO type distribution</CS>
+        <ChartCard>
+          <ChartTitle>🩸 Blood Groups</ChartTitle><ChartSubtitle>ABO type distribution</ChartSubtitle>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={stats.bloodData} layout="vertical" barSize={14}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
@@ -141,9 +262,9 @@ export default function StatisticsPage() {
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </CCard>
-        <CCard>
-          <CT>⚖️ BMI Sample</CT><CS>First 14 patients</CS>
+        </ChartCard>
+        <ChartCard>
+          <ChartTitle>⚖️ BMI Sample</ChartTitle><ChartSubtitle>First 14 patients</ChartSubtitle>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={stats.bmiData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -153,9 +274,9 @@ export default function StatisticsPage() {
                 dot={{ r: 3, fill: '#7c3aed', strokeWidth: 2, stroke: 'white' }} />
             </LineChart>
           </ResponsiveContainer>
-        </CCard>
-        <CCard>
-          <CT>🏥 Vitals Radar</CT><CS>Ward A vs Ward B</CS>
+        </ChartCard>
+        <ChartCard>
+          <ChartTitle>🏥 Vitals Radar</ChartTitle><ChartSubtitle>Ward A vs Ward B</ChartSubtitle>
           <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={stats.radarData}>
               <PolarGrid stroke="#e2e8f0" />
@@ -166,7 +287,7 @@ export default function StatisticsPage() {
               <Legend wrapperStyle={{ fontFamily: 'Outfit', fontSize: 12 }} /><Tooltip content={<Tip />} />
             </RadarChart>
           </ResponsiveContainer>
-        </CCard>
+        </ChartCard>
       </Grid3>
     </Page>
   )
