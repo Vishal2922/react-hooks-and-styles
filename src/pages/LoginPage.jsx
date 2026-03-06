@@ -515,11 +515,6 @@ export default function LoginPage() {
             {errs.pass && <ErrorText>{errs.pass}</ErrorText>}
           </FormGroup>
 
-          <Row>
-            <CheckboxLabel><input type="checkbox" checked={rem} onChange={e => setRem(e.target.checked)} />Remember me</CheckboxLabel>
-            <Forgot>Forgot password?</Forgot>
-          </Row>
-
           <SubmitButton type="submit" $l={load} disabled={load}>
             {load ? <><LoadingOutlined /> Signing in…</> : 'Sign In'}
           </SubmitButton>
