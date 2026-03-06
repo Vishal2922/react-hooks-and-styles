@@ -1,425 +1,175 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import styled, { keyframes } from 'styled-components'
-import { UserOutlined, LockOutlined, EyeOutlined, EyeInvisibleOutlined, MedicineBoxOutlined, LoadingOutlined } from '@ant-design/icons'
+import {
+  Container, Row, Col, Form, Button, Alert, InputGroup, Spinner, Card
+} from 'react-bootstrap'
+import {
+  UserOutlined, LockOutlined, EyeOutlined, EyeInvisibleOutlined,
+  MedicineBoxOutlined, CheckCircleFilled
+} from '@ant-design/icons'
 import { useAppContext } from '../context/AppContext'
 
-/* ── Animations ── */
-const fadeUp = keyframes`
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-`
+/* ── Inline style objects (replaces styled-components) ── */
+const styles = {
+  page: {
+    minHeight: '100vh',
+    display: 'flex',
+    fontFamily: "'Outfit', sans-serif",
+    background: '#f1f5f9',
+    margin: 0,
+    padding: 0,
+  },
 
-const spin = keyframes`
-  to { transform: rotate(360deg); }
-`
+  /* ── Left branding panel ── */
+  left: {
+    flex: 1,
+    background: 'linear-gradient(160deg, #0f172a 0%, #0c2340 100%)',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: '48px',
+  },
+  logo: {
+    width: 56, height: 56,
+    background: 'linear-gradient(135deg, #0ea5e9, #0369a1)',
+    borderRadius: 16,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    margin: '0 auto 20px',
+    boxShadow: '0 0 0 10px rgba(14,165,233,0.1)',
+  },
+  leftTitle: {
+    fontSize: 26, fontWeight: 800, color: 'white',
+    marginBottom: 8, textAlign: 'center',
+  },
+  leftSub: {
+    fontSize: 13, color: '#64748b', textAlign: 'center',
+    lineHeight: 1.7, maxWidth: 260, margin: '0 auto 28px',
+  },
+  feat: {
+    fontSize: 13, color: '#94a3b8',
+    display: 'flex', alignItems: 'center', gap: 10,
+    marginBottom: 10,
+  },
+  featCheck: {
+    width: 20, height: 20,
+    background: 'rgba(14,165,233,0.15)', color: '#0ea5e9',
+    borderRadius: '50%', display: 'inline-flex',
+    alignItems: 'center', justifyContent: 'center',
+    fontSize: 10, fontWeight: 700, flexShrink: 0,
+  },
+  badge: {
+    fontSize: 10, fontWeight: 700, color: '#475569',
+    border: '1px solid #1e3a52', borderRadius: 5,
+    padding: '3px 8px', textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
 
-/* ── Page Layout ── */
-const Page = styled.div`
-  min-height: 100vh;
-  display: flex;
-  background: #f1f5f9;
-  font-family: 'Outfit', sans-serif;
-`
+  /* ── Right login panel ── */
+  right: {
+    width: '100%', maxWidth: 440,
+    background: 'white',
+    display: 'flex', flexDirection: 'column',
+    justifyContent: 'center',
+    padding: '48px 40px',
+    boxShadow: '-4px 0 24px rgba(0,0,0,0.06)',
+    animation: 'fadeUp 0.4s ease both',
+  },
+  mobileLogo: {
+    display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32,
+  },
+  mobileLogoIcon: {
+    width: 36, height: 36,
+    background: 'linear-gradient(135deg, #0ea5e9, #0369a1)',
+    borderRadius: 10,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  formTitle: {
+    fontSize: 21, fontWeight: 700, color: '#0f172a',
+    letterSpacing: -0.3, marginBottom: 5,
+  },
+  formSubtitle: {
+    fontSize: 13, color: '#94a3b8', marginBottom: 24,
+  },
+  inputIcon: (focused, hasError) => ({
+    color: hasError ? '#ef4444' : focused ? '#0ea5e9' : '#d1d5db',
+    fontSize: 15, transition: 'color 0.18s',
+  }),
+  submitBtn: (loading) => ({
+    width: '100%', height: 46, borderRadius: 8,
+    fontSize: 14, fontWeight: 700,
+    fontFamily: "'Outfit', sans-serif",
+    background: loading ? '#93c5fd' : 'linear-gradient(135deg, #0ea5e9, #0369a1)',
+    border: 'none', color: 'white',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    boxShadow: loading ? 'none' : '0 4px 14px rgba(14,165,233,0.35)',
+    cursor: loading ? 'not-allowed' : 'pointer',
+    transition: 'all 0.2s',
+  }),
+  securityRow: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: 5, padding: '14px 0',
+    borderTop: '1px solid #f3f4f6', marginBottom: 14,
+  },
+  demoBox: {
+    background: '#f9fafb', border: '1px dashed #e5e7eb',
+    borderRadius: 8, padding: '12px 14px',
+  },
+  demoTitle: {
+    fontSize: 10, fontWeight: 700, color: '#9ca3af',
+    textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8,
+  },
+  demoValue: {
+    fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+    fontWeight: 700, color: '#0369a1',
+    background: '#dbeafe', padding: '2px 8px', borderRadius: 4,
+  },
+}
 
-/* ── Left Panel (Branding) ── */
-const Left = styled.div`
-  display: none;
-
-  @media (min-width: 900px) {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
-    background: linear-gradient(160deg, #0f172a 0%, #0c2340 100%);
-    padding: 48px;
+/* ── Keyframe injection ── */
+const styleTag = document.createElement('style')
+styleTag.textContent = `
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-`
-
-const Logo = styled.div`
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #0ea5e9, #0369a1);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 0 0 10px rgba(14, 165, 233, 0.1);
-
-  .anticon {
-    font-size: 28px;
-    color: white;
+  .login-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(14,165,233,0.4) !important;
   }
-`
-
-const LeftTitle = styled.h1`
-  font-size: 26px;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 8px;
-  text-align: center;
-
-  span {
-    color: #0ea5e9;
+  .login-submit:active:not(:disabled) {
+    transform: translateY(0);
   }
-`
-
-const LeftSubtitle = styled.p`
-  font-size: 13px;
-  color: #64748b;
-  text-align: center;
-  line-height: 1.7;
-  max-width: 260px;
-  margin: 0 auto 28px;
-`
-
-const Features = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`
-
-const Feat = styled.div`
-  font-size: 13px;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  &::before {
-    content: '✓';
-    width: 20px;
-    height: 20px;
-    background: rgba(14, 165, 233, 0.15);
-    color: #0ea5e9;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 10px;
-    font-weight: 700;
-    flex-shrink: 0;
+  .login-input:focus {
+    background: white !important;
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.12) !important;
   }
-`
-
-const Badges = styled.div`
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 32px;
-`
-
-const BadgeItem = styled.span`
-  font-size: 10px;
-  font-weight: 700;
-  color: #475569;
-  border: 1px solid #1e3a52;
-  border-radius: 5px;
-  padding: 3px 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`
-
-/* ── Right Panel (Login Form) ── */
-const Right = styled.div`
-  width: 100%;
-  max-width: 440px;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 48px 40px;
-  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.06);
-  animation: ${fadeUp} 0.4s ease both;
-
-  @media (max-width: 899px) {
-    max-width: 100%;
-    box-shadow: none;
-    padding: 40px 24px;
-    align-items: center;
+  .login-input.is-invalid:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
   }
-`
-
-const MobileLogo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 32px;
-
-  @media (min-width: 900px) {
-    display: none;
-  }
-
-  .icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #0ea5e9, #0369a1);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .icon .anticon {
-    font-size: 17px;
-    color: white;
-  }
-
-  span {
-    font-size: 17px;
-    font-weight: 800;
-    color: #0f172a;
-  }
-
-  em {
-    color: #0ea5e9;
-    font-style: normal;
-  }
-`
-
-/* ── Form Elements ── */
-const FormTitle = styled.h2`
-  font-size: 21px;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.3px;
-  margin-bottom: 5px;
-`
-
-const FormSubtitle = styled.p`
-  font-size: 13px;
-  color: #94a3b8;
-  margin-bottom: 24px;
-`
-
-const FormGroup = styled.div`
-  margin-bottom: 14px;
-`
-
-const Label = styled.label`
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 6px;
-`
-
-const InputWrapper = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-`
-
-const InputIcon = styled.span`
-  position: absolute;
-  left: 12px;
-  pointer-events: none;
-  display: flex;
-
-  .anticon {
-    font-size: 15px;
-    transition: color 0.18s;
-    color: ${({ $on, $err }) => $err ? '#ef4444' : $on ? '#0ea5e9' : '#d1d5db'};
-  }
-`
-
-const Input = styled.input`
-  width: 100%;
-  height: 44px;
-  padding: 0 ${({ $r }) => $r ? '42px' : '14px'} 0 38px;
-  border: 1.5px solid ${({ $err, $on }) => $err ? '#fca5a5' : $on ? '#0ea5e9' : '#e5e7eb'};
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: 'Outfit', sans-serif;
-  color: #111827;
-  background: ${({ $err }) => $err ? '#fff5f5' : '#fafafa'};
-  outline: none;
-  transition: all 0.18s;
-
-  &:focus {
-    background: white;
-    border-color: ${({ $err }) => $err ? '#ef4444' : '#0ea5e9'};
-    box-shadow: 0 0 0 3px ${({ $err }) => $err ? 'rgba(239,68,68,0.1)' : 'rgba(14,165,233,0.12)'};
-  }
-
-  &::placeholder {
+  .login-input::placeholder {
     color: #d1d5db;
     font-size: 13px;
   }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .login-eye:hover {
+    color: #0ea5e9 !important;
   }
 `
-
-const Eye = styled.button`
-  position: absolute;
-  right: 10px;
-  display: flex;
-  align-items: center;
-  color: #9ca3af;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  transition: color 0.18s;
-
-  &:hover {
-    color: #0ea5e9;
-  }
-
-  .anticon {
-    font-size: 15px;
-  }
-`
-
-const ErrorText = styled.p`
-  font-size: 12px;
-  color: #ef4444;
-  margin-top: 4px;
-`
-
-/* ── Form Actions ── */
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-`
-
-const CheckboxLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  color: #6b7280;
-  cursor: pointer;
-
-  input {
-    accent-color: #0ea5e9;
-    width: 14px;
-    height: 14px;
-    cursor: pointer;
-  }
-`
-
-const Forgot = styled.span`
-  font-size: 13px;
-  font-weight: 600;
-  color: #0ea5e9;
-  cursor: pointer;
-  transition: color 0.18s;
-
-  &:hover {
-    color: #0284c7;
-  }
-`
-
-const SubmitButton = styled.button`
-  width: 100%;
-  height: 46px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Outfit', sans-serif;
-  color: white;
-  border: none;
-  background: ${({ $l }) => $l ? '#93c5fd' : 'linear-gradient(135deg, #0ea5e9, #0369a1)'};
-  cursor: ${({ $l }) => $l ? 'not-allowed' : 'pointer'};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  transition: all 0.2s;
-  box-shadow: ${({ $l }) => $l ? 'none' : '0 4px 14px rgba(14,165,233,0.35)'};
-
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  .anticon-loading {
-    animation: ${spin} 0.7s linear infinite;
-  }
-`
-
-/* ── Error & Security ── */
-const GlobalError = styled.div`
-  padding: 10px 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-left: 3px solid #ef4444;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #b91c1c;
-  font-weight: 500;
-  margin-bottom: 14px;
-`
-
-const SecurityRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 14px 0;
-  border-top: 1px solid #f3f4f6;
-  margin-bottom: 14px;
-
-  span {
-    font-size: 11px;
-    color: #9ca3af;
-  }
-`
-
-/* ── Demo Credentials ── */
-const Demo = styled.div`
-  background: #f9fafb;
-  border: 1px dashed #e5e7eb;
-  border-radius: 8px;
-  padding: 12px 14px;
-`
-
-const DemoTitle = styled.p`
-  font-size: 10px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-`
-
-const DemoRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 3px 0;
-`
-
-const DemoKey = styled.span`
-  font-size: 12px;
-  color: #6b7280;
-`
-
-const DemoValue = styled.span`
-  font-size: 12px;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  color: #0369a1;
-  background: #dbeafe;
-  padding: 2px 8px;
-  border-radius: 4px;
-`
+if (!document.querySelector('#login-page-styles')) {
+  styleTag.id = 'login-page-styles'
+  document.head.appendChild(styleTag)
+}
 
 /* ── Constants ── */
 const DEMO = { email: 'admin@gmail.com', password: 'Pass@123' }
+const FEATURES = [
+  'Real-time patient monitoring',
+  'Secure role-based access',
+  'Complete medical records',
+  'Analytics & reporting',
+]
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -463,70 +213,205 @@ export default function LoginPage() {
   }, [email, pass, validate, login, navigate])
 
   return (
-    <Page>
-      <Left>
-        <Logo><MedicineBoxOutlined /></Logo>
-        <LeftTitle>Medi<span>Care</span> HMS</LeftTitle>
-        <LeftSubtitle>A unified platform for patient records, vitals monitoring, and clinical workflows.</LeftSubtitle>
-        <Features>
-          {['Real-time patient monitoring', 'Secure role-based access', 'Complete medical records', 'Analytics & reporting']
-            .map(f => <Feat key={f}>{f}</Feat>)}
-        </Features>
-        <Badges><BadgeItem>HIPAA</BadgeItem><BadgeItem>ISO 27001</BadgeItem><BadgeItem>HL7 FHIR</BadgeItem></Badges>
-      </Left>
+    <div style={styles.page}>
+      {/* ── Left Branding Panel (hidden on small screens via Bootstrap) ── */}
+      <div className="d-none d-lg-flex" style={styles.left}>
+        <div style={styles.logo}>
+          <MedicineBoxOutlined style={{ fontSize: 28, color: 'white' }} />
+        </div>
+        <h1 style={styles.leftTitle}>
+          Medi<span style={{ color: '#0ea5e9' }}>Care</span> HMS
+        </h1>
+        <p style={styles.leftSub}>
+          A unified platform for patient records, vitals monitoring, and clinical workflows.
+        </p>
+        <div>
+          {FEATURES.map(f => (
+            <div key={f} style={styles.feat}>
+              <span style={styles.featCheck}>✓</span>{f}
+            </div>
+          ))}
+        </div>
+        <div className="d-flex gap-2 justify-content-center mt-4">
+          <span style={styles.badge}>HIPAA</span>
+          <span style={styles.badge}>ISO 27001</span>
+          <span style={styles.badge}>HL7 FHIR</span>
+        </div>
+      </div>
 
-      <Right>
-        <MobileLogo>
-          <div className="icon"><MedicineBoxOutlined /></div>
-          <span>Medi<em>Care</em> HMS</span>
-        </MobileLogo>
-        <FormTitle>Sign in</FormTitle>
-        <FormSubtitle>Enter your credentials to access the dashboard</FormSubtitle>
+      {/* ── Right Login Panel ── */}
+      <div style={styles.right}>
+        {/* Mobile logo — visible only on small screens */}
+        <div className="d-lg-none" style={styles.mobileLogo}>
+          <div style={styles.mobileLogoIcon}>
+            <MedicineBoxOutlined style={{ fontSize: 17, color: 'white' }} />
+          </div>
+          <span style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>
+            Medi<em style={{ color: '#0ea5e9', fontStyle: 'normal' }}>Care</em> HMS
+          </span>
+        </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {gErr && <GlobalError>⚠ {gErr}</GlobalError>}
+        <h2 style={styles.formTitle}>Sign in</h2>
+        <p style={styles.formSubtitle}>Enter your credentials to access the dashboard</p>
 
-          <FormGroup>
-            <Label>Email Address</Label>
-            <InputWrapper>
-              <InputIcon $on={eF} $err={!!errs.email}><UserOutlined /></InputIcon>
-              <Input ref={ref} type="email" value={email}
+        <Form onSubmit={handleSubmit} noValidate>
+          {/* Global error */}
+          {gErr && (
+            <Alert variant="danger" className="py-2 px-3 mb-3" style={{
+              fontSize: 13, fontWeight: 500, borderLeft: '3px solid #ef4444',
+              fontFamily: "'Outfit', sans-serif", borderRadius: 8,
+            }}>
+              ⚠ {gErr}
+            </Alert>
+          )}
+
+          {/* Email field */}
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              Email Address
+            </Form.Label>
+            <InputGroup>
+              <InputGroup.Text style={{
+                background: 'transparent', border: 'none',
+                position: 'absolute', left: 0, top: 0, bottom: 0,
+                zIndex: 4, display: 'flex', alignItems: 'center', paddingLeft: 12,
+              }}>
+                <UserOutlined style={styles.inputIcon(eF, !!errs.email)} />
+              </InputGroup.Text>
+              <Form.Control
+                ref={ref}
+                type="email"
+                value={email}
                 onChange={e => setEmail(e.target.value)}
-                onFocus={() => setEF(true)} onBlur={() => setEF(false)}
-                placeholder="you@hospital.com" $err={!!errs.email} $on={eF}
-                disabled={load} autoComplete="email" />
-            </InputWrapper>
-            {errs.email && <ErrorText>{errs.email}</ErrorText>}
-          </FormGroup>
+                onFocus={() => setEF(true)}
+                onBlur={() => setEF(false)}
+                placeholder="you@hospital.com"
+                disabled={load}
+                autoComplete="email"
+                isInvalid={!!errs.email}
+                className="login-input"
+                style={{
+                  height: 44, paddingLeft: 38,
+                  borderRadius: 8, fontSize: 14,
+                  fontFamily: "'Outfit', sans-serif",
+                  borderColor: errs.email ? '#fca5a5' : eF ? '#0ea5e9' : '#e5e7eb',
+                  background: errs.email ? '#fff5f5' : '#fafafa',
+                }}
+              />
+              <Form.Control.Feedback type="invalid" style={{ fontSize: 12 }}>
+                {errs.email}
+              </Form.Control.Feedback>
+            </InputGroup>
+          </Form.Group>
 
-          <FormGroup>
-            <Label>Password</Label>
-            <InputWrapper>
-              <InputIcon $on={pF} $err={!!errs.pass}><LockOutlined /></InputIcon>
-              <Input type={show ? 'text' : 'password'} value={pass}
+          {/* Password field */}
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+              Password
+            </Form.Label>
+            <InputGroup>
+              <InputGroup.Text style={{
+                background: 'transparent', border: 'none',
+                position: 'absolute', left: 0, top: 0, bottom: 0,
+                zIndex: 4, display: 'flex', alignItems: 'center', paddingLeft: 12,
+              }}>
+                <LockOutlined style={styles.inputIcon(pF, !!errs.pass)} />
+              </InputGroup.Text>
+              <Form.Control
+                type={show ? 'text' : 'password'}
+                value={pass}
                 onChange={e => setPass(e.target.value)}
-                onFocus={() => setPF(true)} onBlur={() => setPF(false)}
-                placeholder="Enter your password" $err={!!errs.pass} $on={pF} $r
-                disabled={load} autoComplete="current-password" />
-              <Eye type="button" onClick={() => setShow(v => !v)} tabIndex={-1}>
-                {show ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-              </Eye>
-            </InputWrapper>
-            {errs.pass && <ErrorText>{errs.pass}</ErrorText>}
-          </FormGroup>
+                onFocus={() => setPF(true)}
+                onBlur={() => setPF(false)}
+                placeholder="Enter your password"
+                disabled={load}
+                autoComplete="current-password"
+                isInvalid={!!errs.pass}
+                className="login-input"
+                style={{
+                  height: 44, paddingLeft: 38, paddingRight: 42,
+                  borderRadius: 8, fontSize: 14,
+                  fontFamily: "'Outfit', sans-serif",
+                  borderColor: errs.pass ? '#fca5a5' : pF ? '#0ea5e9' : '#e5e7eb',
+                  background: errs.pass ? '#fff5f5' : '#fafafa',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShow(v => !v)}
+                tabIndex={-1}
+                className="login-eye"
+                style={{
+                  position: 'absolute', right: 10, top: '50%',
+                  transform: 'translateY(-50%)', zIndex: 4,
+                  background: 'none', border: 'none',
+                  color: '#9ca3af', cursor: 'pointer',
+                  padding: 4, display: 'flex', alignItems: 'center',
+                  transition: 'color 0.18s',
+                }}
+              >
+                {show
+                  ? <EyeInvisibleOutlined style={{ fontSize: 15 }} />
+                  : <EyeOutlined style={{ fontSize: 15 }} />}
+              </button>
+              <Form.Control.Feedback type="invalid" style={{ fontSize: 12 }}>
+                {errs.pass}
+              </Form.Control.Feedback>
+            </InputGroup>
+          </Form.Group>
 
-          <SubmitButton type="submit" $l={load} disabled={load}>
-            {load ? <><LoadingOutlined /> Signing in…</> : 'Sign In'}
-          </SubmitButton>
-        </form>
+          {/* Remember me + Forgot
+          <Row className="mb-3 align-items-center">
+            <Col>
+              <Form.Check
+                type="checkbox"
+                label="Remember me"
+                checked={rem}
+                onChange={() => setRem(v => !v)}
+                style={{ fontSize: 13, color: '#6b7280', accentColor: '#0ea5e9' }}
+              />
+            </Col>
+            <Col xs="auto">
+              <span style={{
+                fontSize: 13, fontWeight: 600, color: '#0ea5e9',
+                cursor: 'pointer', transition: 'color 0.18s',
+              }}>
+                Forgot password?
+              </span>
+            </Col>
+          </Row> */}
 
-        <SecurityRow><span>🔒 SSL encrypted · HIPAA compliant · Session monitored</span></SecurityRow>
-        <Demo>
-          <DemoTitle>Demo Credentials</DemoTitle>
-          <DemoRow><DemoKey>Email</DemoKey><DemoValue>{DEMO.email}</DemoValue></DemoRow>
-          <DemoRow><DemoKey>Password</DemoKey><DemoValue>{DEMO.password}</DemoValue></DemoRow>
-        </Demo>
-      </Right>
-    </Page>
+          {/* Submit */}
+          <Button
+            type="submit"
+            disabled={load}
+            className="login-submit mb-3"
+            style={styles.submitBtn(load)}
+          >
+            {load ? <><Spinner animation="border" size="sm" /> Signing in…</> : 'Sign In'}
+          </Button>
+        </Form>
+
+        {/* Security row */}
+        <div style={styles.securityRow}>
+          <span style={{ fontSize: 11, color: '#9ca3af' }}>
+            🔒 SSL encrypted · HIPAA compliant · Session monitored
+          </span>
+        </div>
+
+        {/* Demo credentials */}
+        <Card style={styles.demoBox} className="border-0">
+          <p style={styles.demoTitle} className="mb-2">Demo Credentials</p>
+          <div className="d-flex justify-content-between align-items-center py-1">
+            <span style={{ fontSize: 12, color: '#6b7280' }}>Email</span>
+            <span style={styles.demoValue}>{DEMO.email}</span>
+          </div>
+          <div className="d-flex justify-content-between align-items-center py-1">
+            <span style={{ fontSize: 12, color: '#6b7280' }}>Password</span>
+            <span style={styles.demoValue}>{DEMO.password}</span>
+          </div>
+        </Card>
+      </div>
+    </div>
   )
 }
